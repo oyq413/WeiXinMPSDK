@@ -1,5 +1,25 @@
-﻿/*----------------------------------------------------------------
-	Copyright (C) 2016 Senparc
+﻿#region Apache License Version 2.0
+/*----------------------------------------------------------------
+
+Copyright 2023 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+
+Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
+
+----------------------------------------------------------------*/
+#endregion Apache License Version 2.0
+
+/*----------------------------------------------------------------
+	Copyright (C) 2023 Senparc
 	
 	文件名：MenuMatchRule.cs
 	文件功能描述：个性化菜单匹配规则
@@ -9,7 +29,13 @@
 
     修改标识：lishewen - 20150628
     修改描述：v13.8.8 添加tag_id和language匹配项
+
+    修改标识：Varorbc - 20210930
+    修改描述：v16.15.500 用户信息调整：不再返回用户性别及地区信息
 ----------------------------------------------------------------*/
+
+using System;
+using Senparc.CO2NET.Extensions;
 
 namespace Senparc.Weixin.MP.Entities.Menu
 {
@@ -30,18 +56,22 @@ namespace Senparc.Weixin.MP.Entities.Menu
         /// <summary>
         /// 性别：男（1）女（2），不填则不做匹配
         /// </summary>
+        [Obsolete("https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncement&announce_id=11632637451RQs8y")]
         public string sex { get; set; }
         /// <summary>
         /// 国家信息，是用户在微信中设置的地区，具体请参考地区信息表
         /// </summary>
+        [Obsolete("https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncement&announce_id=11632637451RQs8y")]
         public string country { get; set; }
         /// <summary>
         /// 省份信息，是用户在微信中设置的地区，具体请参考地区信息表
         /// </summary>
+        [Obsolete("https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncement&announce_id=11632637451RQs8y")]
         public string province { get; set; }
         /// <summary>
         /// 城市信息，是用户在微信中设置的地区，具体请参考地区信息表
         /// </summary>
+        [Obsolete("https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncement&announce_id=11632637451RQs8y")]
         public string city { get; set; }
         /// <summary>
         /// 客户端版本，当前只具体到系统型号：IOS(1), Android(2),Others(3)，不填则不做匹配
@@ -62,14 +92,10 @@ namespace Senparc.Weixin.MP.Entities.Menu
         /// <returns></returns>
         public bool CheckAllNull()
         {
-            return string.IsNullOrWhiteSpace(group_id)
-                   && string.IsNullOrWhiteSpace(sex)
-                   && string.IsNullOrWhiteSpace(country)
-                   && string.IsNullOrWhiteSpace(province)
-                   && string.IsNullOrWhiteSpace(city)
-                   && string.IsNullOrWhiteSpace(client_platform_type)
-                   && string.IsNullOrWhiteSpace(tag_id)
-                   && string.IsNullOrWhiteSpace(language);
+            return    group_id.IsNullOrWhiteSpace()
+                   && client_platform_type.IsNullOrWhiteSpace()
+                   && tag_id.IsNullOrWhiteSpace()
+                   && language.IsNullOrWhiteSpace();
         }
     }
 }

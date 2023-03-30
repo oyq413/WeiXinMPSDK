@@ -1,5 +1,25 @@
-﻿/*----------------------------------------------------------------
-    Copyright (C) 2016 Senparc
+﻿#region Apache License Version 2.0
+/*----------------------------------------------------------------
+
+Copyright 2023 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+
+Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
+
+----------------------------------------------------------------*/
+#endregion Apache License Version 2.0
+
+/*----------------------------------------------------------------
+    Copyright (C) 2023 Senparc
   
     文件名：UserinfoGetResult.cs
     文件功能描述：枚举类型
@@ -10,6 +30,7 @@
     修改标识：Senparc - 20160505
     修改描述：注销UserinfoGetResult.custom_field_list属性,正确的位置应放到UserinfoGetResult_UserInfo 对象中。感谢@hello2008zj
 ----------------------------------------------------------------*/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,6 +77,10 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         /// 当前用户的会员卡状态
         /// </summary>
         public UserCardStatus user_card_status { get; set; }
+        /// <summary>
+        /// 该卡是否已经被激活，true表示已经被激活，false表示未被激活
+        /// </summary>
+        public bool has_active { get; set; }
     }
 
     public class UserinfoGetResult_UserInfo
@@ -71,6 +96,17 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         public List<UserinfoGetResult_UserInfo_Item> custom_field_list { get; set; }
     }
 
+    /// <summary>
+    /// 获取用户开卡时提交的信息
+    /// </summary>
+    public class GetActivateTempInfoResultJson : WxJsonResult
+    {
+        /// <summary>
+        /// 会员信息
+        /// </summary>
+        public UserinfoGetResult_UserInfo info { get; set; }
+    }
+
     public class UserinfoGetResult_UserInfo_Item
     {
         /// <summary>
@@ -81,5 +117,9 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         /// 会员卡信息类目值，比如等级值等
         /// </summary>
         public string value { get; set; }
+        /// <summary>
+        /// 填写项目为多选时的返回
+        /// </summary>
+        public List<string> value_list { get; set; }
     }
 }

@@ -1,5 +1,25 @@
-﻿/*----------------------------------------------------------------
-    Copyright (C) 2016 Senparc
+﻿#region Apache License Version 2.0
+/*----------------------------------------------------------------
+
+Copyright 2023 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+
+Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
+
+----------------------------------------------------------------*/
+#endregion Apache License Version 2.0
+
+/*----------------------------------------------------------------
+    Copyright (C) 2023 Senparc
     
     文件名：CommonApi.Menu.Common.cs
     文件功能描述：通用自定义菜单接口（公共方法）
@@ -21,6 +41,22 @@
 
     修改标识：IsaacXu - 20151222
     修改描述：添加CreateMenu重写方法
+
+    修改标识：IsaacXu - 20170328
+    修改描述：添加小程序按钮
+    
+    修改标识：Senparc - 20170419
+    修改描述：v14.3.143 修复上一版本造成的菜单获取错误问题
+
+    修改标识：Senparc - 20170419
+    修改描述：v14.4.13 修复二级菜单小程序无法设置的问题
+
+    修改标识：Senparc - 20220503
+    修改描述：v16.18.1 添加 article_id 类型按钮
+
+    修改标识：Senparc - 20220511
+    修改描述：v16.18.2.1 修复二级菜单按钮判断逻辑
+
 ----------------------------------------------------------------*/
 
 /*
@@ -31,7 +67,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web.Script.Serialization;
+using Senparc.NeuChar;
 using Senparc.Weixin.Entities;
 using Senparc.Weixin.Exceptions;
 using Senparc.Weixin.HttpUtility;
@@ -40,6 +76,7 @@ using Senparc.Weixin.MP.Entities.Menu;
 
 namespace Senparc.Weixin.MP.CommonAPIs
 {
+    [NcApiBind(NeuChar.PlatformType.WeChat_OfficialAccount,true)]
     public partial class CommonApi
     {
         /// <summary>
@@ -47,17 +84,18 @@ namespace Senparc.Weixin.MP.CommonAPIs
         /// </summary>
         /// <param name="rootButtonList"></param>
         /// <param name="buttonGroup"></param>
+        //[NcApiBind(NeuChar.PlatformType.WeChat_OfficialAccount,true)]
         private static void GetButtonGroup(List<MenuFull_RootButton> rootButtonList, ButtonGroupBase buttonGroup)
         {
             foreach (var rootButton in rootButtonList)
             {
-                if (string.IsNullOrEmpty(rootButton.name))
+                if (rootButton == null || string.IsNullOrEmpty(rootButton.name))
                 {
                     continue; //没有设置一级菜单
                 }
                 var availableSubButton = rootButton.sub_button == null
                     ? 0
-                    : rootButton.sub_button.Count(z => !string.IsNullOrEmpty(z.name)); //可用二级菜单按钮数量
+                    : rootButton.sub_button.Count(z => z != null && !string.IsNullOrEmpty(z.name)); //可用二级菜单按钮数量
                 if (availableSubButton == 0)
                 {
                     //底部单击按钮
@@ -85,6 +123,18 @@ namespace Senparc.Weixin.MP.CommonAPIs
                         {
                             name = rootButton.name,
                             url = rootButton.url,
+                            type = rootButton.type
+                        });
+                    }
+                    else if (rootButton.type.Equals("MINIPROGRAM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //小程序
+                        buttonGroup.button.Add(new SingleMiniProgramButton()
+                        {
+                            name = rootButton.name,
+                            url = rootButton.url,
+                            appid = rootButton.appid,
+                            pagepath = rootButton.pagepath,
                             type = rootButton.type
                         });
                     }
@@ -138,7 +188,7 @@ namespace Senparc.Weixin.MP.CommonAPIs
                             type = rootButton.type
                         });
                     }
-                    else
+                    else if (rootButton.type.Equals("SCANCODE_WAITMSG", StringComparison.OrdinalIgnoreCase))
                     {
                         //扫码推事件且弹出“消息接收中”提示框
                         buttonGroup.button.Add(new SingleScancodeWaitmsgButton()
@@ -147,6 +197,50 @@ namespace Senparc.Weixin.MP.CommonAPIs
                             key = rootButton.key,
                             type = rootButton.type
                         });
+                    }
+                    else if (rootButton.type.Equals("MEDIA_ID", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //下发消息（除文本消息）按钮
+                        buttonGroup.button.Add(new SingleMediaIdButton()
+                        {
+                            name = rootButton.name,
+                            media_id = rootButton.media_id,
+                            type = rootButton.type
+                        });
+                    }
+                    else if (rootButton.type.Equals("VIEW_LIMITED", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //永久素材
+                        buttonGroup.button.Add(new SingleViewLimitedButton()
+                        {
+                            name = rootButton.name,
+                            media_id = rootButton.media_id,
+                            type = rootButton.type
+                        });
+                    }
+                    else if (rootButton.type.Equals("ARTICLE_ID", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //article_id 按钮
+                        buttonGroup.button.Add(new SingleArticleIdButton()
+                        {
+                            name = rootButton.name,
+                            article_id = rootButton.article_id,
+                            type = rootButton.type
+                        });
+                    }
+                    else if (rootButton.type.Equals("ARTICLE_VIEW_LIMITED", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //article_view_limited 按钮
+                        buttonGroup.button.Add(new SingleArticleViewLimitedButton()
+                        {
+                            name = rootButton.name,
+                            article_id = rootButton.article_id,
+                            type = rootButton.type
+                        });
+                    }
+                    else
+                    {
+                        throw new WeixinMenuException("菜单类型无法处理：" + rootButton.type);
                     }
                 }
                 //else if (availableSubButton < 2)
@@ -161,7 +255,7 @@ namespace Senparc.Weixin.MP.CommonAPIs
 
                     foreach (var subSubButton in rootButton.sub_button)
                     {
-                        if (string.IsNullOrEmpty(subSubButton.name))
+                        if (subSubButton == null || string.IsNullOrEmpty(subSubButton.name))
                         {
                             continue; //没有设置菜单
                         }
@@ -190,6 +284,18 @@ namespace Senparc.Weixin.MP.CommonAPIs
                             {
                                 name = subSubButton.name,
                                 url = subSubButton.url,
+                                type = subSubButton.type
+                            });
+                        }
+                        else if (subSubButton.type.Equals("MINIPROGRAM", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //小程序
+                            subButton.sub_button.Add(new SingleMiniProgramButton()
+                            {
+                                name = subSubButton.name,
+                                url = subSubButton.url,
+                                appid = subSubButton.appid,
+                                pagepath = subSubButton.pagepath,
                                 type = subSubButton.type
                             });
                         }
@@ -243,7 +349,27 @@ namespace Senparc.Weixin.MP.CommonAPIs
                                 type = subSubButton.type
                             });
                         }
-                        else
+                        else if (subSubButton.type.Equals("MEDIA_ID", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //下发消息（除文本消息）按钮
+                            subButton.sub_button.Add(new SingleMediaIdButton()
+                            {
+                                name = subSubButton.name,
+                                media_id = subSubButton.media_id,
+                                type = subSubButton.type
+                            });
+                        }
+                        else if (subSubButton.type.Equals("VIEW_LIMITED", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //永久素材按钮
+                            subButton.sub_button.Add(new SingleViewLimitedButton()
+                            {
+                                name = subSubButton.name,
+                                media_id = subSubButton.media_id,
+                                type = subSubButton.type
+                            });
+                        }
+                        else if (subSubButton.type.Equals("SCANCODE_WAITMSG", StringComparison.OrdinalIgnoreCase))
                         {
                             //扫码推事件且弹出“消息接收中”提示框
                             subButton.sub_button.Add(new SingleScancodeWaitmsgButton()
@@ -252,6 +378,30 @@ namespace Senparc.Weixin.MP.CommonAPIs
                                 key = subSubButton.key,
                                 type = subSubButton.type
                             });
+                        }
+                        else if (subSubButton.type.Equals("ARTICLE_ID", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //article_id 按钮
+                            subButton.sub_button.Add(new SingleArticleIdButton()
+                            {
+                                name = subSubButton.name,
+                                article_id = subSubButton.article_id,
+                                type = subSubButton.type
+                            });
+                        }
+                        else if (subSubButton.type.Equals("ARTICLE_VIEW_LIMITED", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //article_view_limited 按钮
+                            subButton.sub_button.Add(new SingleArticleViewLimitedButton()
+                            {
+                                name = subSubButton.name,
+                                article_id = subSubButton.article_id,
+                                type = subSubButton.type
+                            });
+                        }
+                        else
+                        {
+                            throw new WeixinMenuException("菜单类型无法处理（二级菜单）：" + subSubButton.type);
                         }
                     }
                 }
@@ -286,13 +436,13 @@ namespace Senparc.Weixin.MP.CommonAPIs
                 };
 
                 //设置个性化菜单列表
-                if (resultFull.conditionalmenu!=null)
+                if (resultFull.conditionalmenu != null)
                 {
                     var conditionalMenuList = new List<ConditionalButtonGroup>();
                     foreach (var conditionalMenu in resultFull.conditionalmenu)
                     {
-                        var conditionalButtonGroup = new ConditionalButtonGroup()
-                            ;
+                        var conditionalButtonGroup = new ConditionalButtonGroup();
+
                         //fix bug 16030701  https://github.com/JeffreySu/WeiXinMPSDK/issues/169
                         conditionalButtonGroup.matchrule = conditionalMenu.matchrule;
                         conditionalButtonGroup.menuid = conditionalMenu.menuid;

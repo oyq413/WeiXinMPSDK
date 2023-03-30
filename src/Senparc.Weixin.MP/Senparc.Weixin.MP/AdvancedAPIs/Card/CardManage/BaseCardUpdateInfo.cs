@@ -1,5 +1,25 @@
-﻿/*----------------------------------------------------------------
-    Copyright (C) 2016 Senparc
+﻿#region Apache License Version 2.0
+/*----------------------------------------------------------------
+
+Copyright 2023 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+
+Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
+
+----------------------------------------------------------------*/
+#endregion Apache License Version 2.0
+
+/*----------------------------------------------------------------
+    Copyright (C) 2023 Senparc
     
     文件名：BaseCardUpdateInfo.cs
     文件功能描述：更新卡券的信息部分
@@ -11,6 +31,9 @@
     修改描述：整理接口
 ----------------------------------------------------------------*/
 
+
+
+using Senparc.CO2NET.Helpers.Serializers;
 using Senparc.Weixin.Helpers;
 
 namespace Senparc.Weixin.MP.AdvancedAPIs.Card
@@ -153,6 +176,15 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         public string custom_url_sub_title { get; set; }
 
         /// <summary>
+        /// 自定义使用入口跳转小程序的user_name，格式为小程序原始id+@app  小程序原始id可以在小程序的设置页面底部查看到
+        /// </summary>
+        public string custom_app_brand_user_name { get; set; }
+        /// <summary>
+        /// 自定义使用入口小程序页面地址
+        /// </summary>
+        public string custom_app_brand_pass { get; set; }
+
+        /// <summary>
         /// 营销场景的自定义入口名称 string（16）不需提审
         /// </summary>
         public string promotion_url_name { get; set; }
@@ -166,6 +198,15 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         /// 显示在营销入口右侧的提示语。 不需提审
         /// </summary>
         public string promotion_url_sub_title { get; set; }
+
+        /// <summary>
+        /// 小程序的user_name 格式为小程序原始id+@app  小程序原始id可以在小程序的设置页面底部查看到
+        /// </summary>
+        public string promotion_app_brand_user_name { get; set; }
+        /// <summary>
+        /// 自定义营销入口小程序页面地址
+        /// </summary>
+        public string promotion_app_brand_pass { get; set; }
 
         /// <summary>
         /// 顶部居中的自定义cell入口名称
@@ -182,13 +223,30 @@ namespace Senparc.Weixin.MP.AdvancedAPIs.Card
         /// 非必填
         /// </summary>
         public string center_url { get; set; }
+
+        /// <summary>
+        /// 显示在顶部居中的自定义跳转小程序的user_name 格式为原始id+@app  小程序原始id可以在小程序的设置页面底部查看到
+        /// </summary>
+        public string center_app_brand_user_name { get; set; }
+        /// <summary>
+        /// 自定义居中使用入口小程序页面地址
+        /// </summary>
+        public string center_app_brand_pass { get; set; }
+        /// <summary>
+        /// 指定会员卡支持动态码
+        /// </summary>
+        //[JsonSetting.IgnoreValueAttribute(false)]
+        //public bool use_dynamic_code { get; set; }
     }
     /// <summary>
     /// 使用日期，有效期的信息
     /// </summary>
     public class Card_UpdateDateInfo
     {
-        public string type { get { return "DATE_TYPE_FIX_TIME_RANGE"; } }
+        /// <summary>
+        /// 更新时Type不能被修改，需要设置为原来的类型。
+        /// </summary>
+        public string type { get; set; }
         /// <summary>
         /// 固定日期区间专用，表示起用时间。从1970 年1 月1 日00:00:00 至起用时间的秒数，最终需转换为字符串形态传入，下同。（单位为秒）
         /// 非必填

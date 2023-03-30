@@ -1,5 +1,25 @@
-﻿/*----------------------------------------------------------------
-    Copyright (C) 2016 Senparc
+﻿#region Apache License Version 2.0
+/*----------------------------------------------------------------
+
+Copyright 2022 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+
+Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
+
+----------------------------------------------------------------*/
+#endregion Apache License Version 2.0
+
+/*----------------------------------------------------------------
+    Copyright (C) 2023 Senparc
   
     文件名：ResponseMessageFactory.cs
     文件功能描述：获取XDocument转换后的IResponseMessageBase实例
@@ -16,6 +36,9 @@
 
 using System;
 using System.Xml.Linq;
+using Senparc.NeuChar;
+using Senparc.NeuChar.Entities;
+using Senparc.NeuChar.Helpers;
 using Senparc.Weixin.Exceptions;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Helpers;
@@ -23,7 +46,7 @@ using Senparc.Weixin.MP.Helpers;
 namespace Senparc.Weixin.MP
 {
     /// <summary>
-    /// ResponseMessageFactory消息处理方法工厂类
+    /// ResponseMessage 消息处理方法工厂类
     /// </summary>
     public static class ResponseMessageFactory
     {
@@ -35,7 +58,7 @@ namespace Senparc.Weixin.MP
         //  <MsgType>text</MsgType>
         //  <Content><![CDATA[您刚才发送了文字信息：中文
         //您还可以发送【位置】【图片】【语音】信息，查看不同格式的回复。
-        //SDK官方地址：http://sdk.weixin.senparc.com]]></Content>
+        //SDK官方地址：https://sdk.weixin.senparc.com]]></Content>
         //  <FuncFlag>0</FuncFlag>
         //</xml>
 
@@ -71,13 +94,13 @@ namespace Senparc.Weixin.MP
                     case ResponseMsgType.News:
                         responseMessage = new ResponseMessageNews();
                         break;
-					case ResponseMsgType.Transfer_Customer_Service:
-						responseMessage = new ResponseMessageTransfer_Customer_Service();
-						break;
+                    case ResponseMsgType.Transfer_Customer_Service:
+                        responseMessage = new ResponseMessageTransfer_Customer_Service();
+                        break;
                     default:
                         throw new UnknownRequestMsgTypeException(string.Format("MsgType：{0} 在ResponseMessageFactory中没有对应的处理程序！", msgType), new ArgumentOutOfRangeException());
                 }
-                EntityHelper.FillEntityWithXml(responseMessage, doc);
+                Senparc.NeuChar.Helpers.EntityHelper.FillEntityWithXml(responseMessage, doc);
             }
             catch (ArgumentException ex)
             {
@@ -104,7 +127,7 @@ namespace Senparc.Weixin.MP
         /// <returns></returns>
         public static XDocument ConvertEntityToXml(ResponseMessageBase entity)
         {
-            return EntityHelper.ConvertEntityToXml(entity);
+            return Senparc.NeuChar.Helpers.EntityHelper.ConvertEntityToXml(entity);
         }
     }
 }

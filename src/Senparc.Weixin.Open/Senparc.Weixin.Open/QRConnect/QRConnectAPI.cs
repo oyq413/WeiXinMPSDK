@@ -1,5 +1,5 @@
 ﻿/*----------------------------------------------------------------
-    Copyright (C) 2016 Senparc
+    Copyright (C) 2023 Senparc
     
     文件名：QRConnectAPI.cs
     文件功能描述：微信扫码登录
@@ -10,6 +10,12 @@
     修改标识：Senparc - 20160720
     修改描述：增加其接口的异步方法
 
+    修改标识：Senparc - 20171008
+    修改描述：为支持.NET 3.5修改GetQRConnectUrl()方法
+    
+    修改标识：Senparc - 20210730
+    修改描述：v4.10.2 弃用 Senparc.Weixin.Open.CommonAPIs.CommonJsonSend，统一改为 Senparc.Weixin.CommonAPIs.CommonJsonSend
+    
 ----------------------------------------------------------------*/
 
 /*
@@ -18,20 +24,22 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Senparc.CO2NET.Extensions;
+using Senparc.NeuChar;
+using Senparc.Weixin.CommonAPIs;
 using Senparc.Weixin.Entities;
-using Senparc.Weixin.HttpUtility;
-using Senparc.Weixin.Open.CommonAPIs;
 
 namespace Senparc.Weixin.Open.QRConnect
 {
     /// <summary>
     /// 代公众号发起网页授权
     /// </summary>
+    [NcApiBind(NeuChar.PlatformType.WeChat_Open,true)]
     public static class QRConnectAPI
     {
-        #region 同步请求
-        
-       
+        #region 同步方法
+
+
         /*此接口不提供异步方法*/
         /// <summary>
         /// 微信扫码登录网页授权
@@ -47,7 +55,7 @@ namespace Senparc.Weixin.Open.QRConnect
             //此URL比MP中的对应接口多了&component_appid=component_appid参数
             var url =
                 string.Format("https://open.weixin.qq.com/connect/qrconnect?appid={0}&redirect_uri={1}&response_type={2}&scope={3}&state={4}#wechat_redirect",
-                                appId.AsUrlData(), redirectUrl.AsUrlData(), responseType.AsUrlData(), string.Join(",", scopes.Select(z => z.ToString())).AsUrlData(), state.AsUrlData());
+                                appId.AsUrlData(), redirectUrl.AsUrlData(), responseType.AsUrlData(), string.Join(",", scopes.Select(z => z.ToString()).ToArray()).AsUrlData(), state.AsUrlData());
 
             /* 这一步发送之后，客户会得到授权页面，无论同意或拒绝，都会返回redirectUrl页面。
              * 用户允许授权后，将会重定向到redirect_uri的网址上，并且带上code和state参数redirect_uri?code=CODE&state=STATE
@@ -68,7 +76,7 @@ namespace Senparc.Weixin.Open.QRConnect
         {
             var url =
                 string.Format(
-                    "https://api.weixin.qq.com/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type={3}",
+                    Config.ApiMpHost + "/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type={3}",
                     appId.AsUrlData(), appSecret.AsUrlData(), code.AsUrlData(), grantType.AsUrlData());
 
             /* 期望返回：
@@ -97,7 +105,7 @@ namespace Senparc.Weixin.Open.QRConnect
         {
             var url =
                 string.Format(
-                    "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid={0}&grant_type={1}&refresh_token={2}",
+                    Config.ApiMpHost + "/sns/oauth2/refresh_token?appid={0}&grant_type={1}&refresh_token={2}",
                     appId.AsUrlData(), grantType.AsUrlData(), refreshToken.AsUrlData());
 
             return CommonJsonSend.Send<RefreshAccessTokenResult>(null, url, null, CommonJsonSendType.GET);
@@ -111,7 +119,7 @@ namespace Senparc.Weixin.Open.QRConnect
         /// <returns></returns>
         public static QRConnectUserInfo GetUserInfo(string accessToken, string openId)
         {
-            var url = string.Format("https://api.weixin.qq.com/sns/userinfo?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
+            var url = string.Format(Config.ApiMpHost + "/sns/userinfo?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
             /*
              期望返回：{    "openid":" OPENID",    " nickname": "NICKNAME",    "sex":"1",    "province":"PROVINCE"    "city":"CITY",    "country":"COUNTRY",     "headimgurl":    "http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",  "privilege":[ "PRIVILEGE1" "PRIVILEGE2"     ],     "unionid": "o6_bmasdasdsad6_2sgVt7hMZOPfL" }
              错误时微信会返回JSON数据包如下（示例为openid无效）:{"errcode":40003,"errmsg":" invalid openid "}
@@ -127,13 +135,14 @@ namespace Senparc.Weixin.Open.QRConnect
         /// <returns></returns>
         public static WxJsonResult Auth(string accessToken, string openId)
         {
-            var url = string.Format("https://api.weixin.qq.com/sns/auth?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
+            var url = string.Format(Config.ApiMpHost + "/sns/auth?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
             return CommonJsonSend.Send<WxJsonResult>(null, url, null, CommonJsonSendType.GET);
         }
         #endregion
 
-        #region 异步请求
-         /// <summary>
+
+        #region 异步方法
+        /// <summary>
         /// 【异步方法】获取AccessToken
         /// </summary>
         /// <param name="appId">应用唯一标识，在微信开放平台提交应用审核通过后获得</param>
@@ -145,7 +154,7 @@ namespace Senparc.Weixin.Open.QRConnect
         {
             var url =
                 string.Format(
-                    "https://api.weixin.qq.com/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type={3}",
+                    Config.ApiMpHost + "/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type={3}",
                     appId.AsUrlData(), appSecret.AsUrlData(), code.AsUrlData(), grantType.AsUrlData());
 
             /* 期望返回：
@@ -160,7 +169,7 @@ namespace Senparc.Weixin.Open.QRConnect
             
             出错返回：{"errcode":40029,"errmsg":"invalid code"}
             */
-            return await Senparc .Weixin .CommonAPIs .CommonJsonSend.SendAsync<QRConnectAccessTokenResult>(null, url, null, CommonJsonSendType.GET);
+            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<QRConnectAccessTokenResult>(null, url, null, CommonJsonSendType.GET).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -174,10 +183,10 @@ namespace Senparc.Weixin.Open.QRConnect
         {
             var url =
                 string.Format(
-                    "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid={0}&grant_type={1}&refresh_token={2}",
+                    Config.ApiMpHost + "/sns/oauth2/refresh_token?appid={0}&grant_type={1}&refresh_token={2}",
                     appId.AsUrlData(), grantType.AsUrlData(), refreshToken.AsUrlData());
 
-            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<RefreshAccessTokenResult>(null, url, null, CommonJsonSendType.GET);
+            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<RefreshAccessTokenResult>(null, url, null, CommonJsonSendType.GET).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,12 +197,12 @@ namespace Senparc.Weixin.Open.QRConnect
         /// <returns></returns>
         public static async Task<QRConnectUserInfo> GetUserInfoAsync(string accessToken, string openId)
         {
-            var url = string.Format("https://api.weixin.qq.com/sns/userinfo?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
+            var url = string.Format(Config.ApiMpHost + "/sns/userinfo?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
             /*
              期望返回：{    "openid":" OPENID",    " nickname": "NICKNAME",    "sex":"1",    "province":"PROVINCE"    "city":"CITY",    "country":"COUNTRY",     "headimgurl":    "http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",  "privilege":[ "PRIVILEGE1" "PRIVILEGE2"     ],     "unionid": "o6_bmasdasdsad6_2sgVt7hMZOPfL" }
              错误时微信会返回JSON数据包如下（示例为openid无效）:{"errcode":40003,"errmsg":" invalid openid "}
              */
-            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<QRConnectUserInfo>(null, url, null, CommonJsonSendType.GET);
+            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<QRConnectUserInfo>(null, url, null, CommonJsonSendType.GET).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -204,8 +213,8 @@ namespace Senparc.Weixin.Open.QRConnect
         /// <returns></returns>
         public static async Task<WxJsonResult> AuthAsync(string accessToken, string openId)
         {
-            var url = string.Format("https://api.weixin.qq.com/sns/auth?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
-            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<WxJsonResult>(null, url, null, CommonJsonSendType.GET);
+            var url = string.Format(Config.ApiMpHost + "/sns/auth?access_token={0}&openid={1}", accessToken.AsUrlData(), openId.AsUrlData());
+            return await Senparc.Weixin.CommonAPIs.CommonJsonSend.SendAsync<WxJsonResult>(null, url, null, CommonJsonSendType.GET).ConfigureAwait(false);
         }
         #endregion
     }

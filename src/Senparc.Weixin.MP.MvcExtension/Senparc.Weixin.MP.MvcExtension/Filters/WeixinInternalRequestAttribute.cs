@@ -1,9 +1,31 @@
-﻿using System;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2023 Senparc
+
+    文件名：WeixinInternalRequestAttribute.cs
+    文件功能描述：微信内置浏览器状态判断
+
+
+    创建标识：Senparc - 20160801
+
+        
+    修改标识：Senparc - 20170304
+    修改描述：v4.2.0 修复浏览器状态判断问题
+    
+----------------------------------------------------------------*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if NET462
 using System.Web.Mvc;
-using Senparc.Weixin.BrowserUtility;
+using System.Web;
+#else
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+#endif
+//using Senparc.Weixin.BrowserUtility;
 
 namespace Senparc.Weixin.MP.MvcExtension
 {
@@ -26,18 +48,23 @@ namespace Senparc.Weixin.MP.MvcExtension
         /// </summary>
         /// <param name="message">错误提示信息</param>
         /// <param name="ignoreParameter">如果地址栏中提供改参数，则忽略浏览器判断，建议设置得复杂一些。如?abc=[任意字符]</param>
-        public WeixinInternalRequestAttribute(string message,string ignoreParameter = null)
+        public WeixinInternalRequestAttribute(string message, string ignoreParameter = null)
         {
             _message = message;
             _ignoreParameter = ignoreParameter;
         }
 
-
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+#if NET462
             if (string.IsNullOrEmpty(_ignoreParameter) || string.IsNullOrEmpty(filterContext.RequestContext.HttpContext.Request.QueryString[_ignoreParameter]))
+#else
+            if (string.IsNullOrEmpty(_ignoreParameter) || string.IsNullOrEmpty(filterContext.HttpContext.Request.Query[_ignoreParameter]))
+#endif
             {
-                if (!BroswerUtility.SideInWeixinBroswer(filterContext.HttpContext))
+
+                //if (!filterContext.HttpContext.SideInWeixinBrowser())
+                if (!Senparc.Weixin.BrowserUtility.BrowserUtility.SideInWeixinBrowser(filterContext.HttpContext))
                 {
                     //TODO:判断网页版登陆状态
                     ActionResult actionResult = null;
